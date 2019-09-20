@@ -192,57 +192,68 @@ namespace Image_Cropper
                 if (images.Length > 0)
                 {
                     Console.Write("\n");
+
                     foreach (string img in images)
                     {
-                        //Creates a bitmap image from source image.
-                        Bitmap srcImg = Image.FromFile(img) as Bitmap;
-
-                        //If the width of the source image is at least or greater than the "minImageWidth" then crop images...
-                        if (srcImg.Size.Width >= minImageWidth)
-                        {
-                            //Variables for the left side.
-                            Rectangle cropRectLeft = new Rectangle(0, 0, srcImg.Size.Width / 2, srcImg.Size.Height);
-                            Bitmap targetImgLeft = new Bitmap(cropRectLeft.Width, cropRectLeft.Height);
-
-                            //Variables for the right side.
-                            Rectangle cropRectRight = new Rectangle(srcImg.Size.Width / 2, 0, srcImg.Size.Width / 2, srcImg.Size.Height);
-                            Bitmap targetImgRight = new Bitmap(cropRectRight.Width, cropRectRight.Height);
-
-                            //Crop left side of the image.
-                            using (Graphics g = Graphics.FromImage(targetImgLeft))
-                            {
-                                g.DrawImage(srcImg, new Rectangle(0, 0, targetImgLeft.Width, targetImgLeft.Height),
-                                                    cropRectLeft,
-                                                    GraphicsUnit.Pixel);
-                            }
-                            //Saves the left side of the image as png.
-                            targetImgLeft.Save(Path.GetFileNameWithoutExtension(img) + "_1.png", ImageFormat.Png);
-
-                            //Crop right side of the image.
-                            using (Graphics g = Graphics.FromImage(targetImgRight))
-                            {
-                                g.DrawImage(srcImg, new Rectangle(0, 0, targetImgRight.Width, targetImgRight.Height),
-                                                    cropRectRight,
-                                                    GraphicsUnit.Pixel);
-                            }
-                            //Saves the right side of the image as png.
-                            targetImgRight.Save(Path.GetFileNameWithoutExtension(img) + "_2.png", ImageFormat.Png);
-
-                            //Increment the images cropped.
-                            imagesCroppedCount++;
-
-                            //Print the name of the image cropped.
-                            Console.WriteLine(imagesCroppedCount + "- Image: " + Path.GetFileName(img) + " Cropped!");
-
-                            //Add cropped image to "croppedImagesList".
-                            croppedImagesList.Add(img);
-                        }
-
-                        //Release the bitmap image used.
-                        srcImg.Dispose();
-                    }
-                }
+						//Fast way to check image sizes.
+						using (Stream stream = File.OpenRead(img))
+						{
+							using (Image sourceImage = Image.FromStream(stream, false, false))
+							{
+								//If the width of the source image is at least or greater than the "minImageWidth" then crop images...
+								if (sourceImage.Width >= minImageWidth)
+									CropImage(img);
+							}
+						}
+					}
+				}
             }
-        }
+
+			void CropImage(string image)
+			{
+				//Creates a bitmap image from source image.
+				Bitmap srcImg = Image.FromFile(image) as Bitmap;
+
+				//Variables for the left side.
+				Rectangle cropRectLeft = new Rectangle(0, 0, srcImg.Size.Width / 2, srcImg.Size.Height);
+				Bitmap targetImgLeft = new Bitmap(cropRectLeft.Width, cropRectLeft.Height);
+
+				//Variables for the right side.
+				Rectangle cropRectRight = new Rectangle(srcImg.Size.Width / 2, 0, srcImg.Size.Width / 2, srcImg.Size.Height);
+				Bitmap targetImgRight = new Bitmap(cropRectRight.Width, cropRectRight.Height);
+
+				//Crop left side of the image.
+				using (Graphics g = Graphics.FromImage(targetImgLeft))
+				{
+					g.DrawImage(srcImg, new Rectangle(0, 0, targetImgLeft.Width, targetImgLeft.Height),
+										cropRectLeft,
+										GraphicsUnit.Pixel);
+				}
+				//Saves the left side of the image as png.
+				targetImgLeft.Save(Path.GetFileNameWithoutExtension(image) + "_1.png", ImageFormat.Png);
+
+				//Crop right side of the image.
+				using (Graphics g = Graphics.FromImage(targetImgRight))
+				{
+					g.DrawImage(srcImg, new Rectangle(0, 0, targetImgRight.Width, targetImgRight.Height),
+										cropRectRight,
+										GraphicsUnit.Pixel);
+				}
+				//Saves the right side of the image as png.
+				targetImgRight.Save(Path.GetFileNameWithoutExtension(image) + "_2.png", ImageFormat.Png);
+
+				//Increment the images cropped.
+				imagesCroppedCount++;
+
+				//Print the name of the image cropped.
+				Console.WriteLine(imagesCroppedCount + "- Image: " + Path.GetFileName(image) + " Cropped!");
+
+				//Add cropped image to "croppedImagesList".
+				croppedImagesList.Add(image);
+
+				//Release the bitmap image used.
+				srcImg.Dispose();
+			}
+		}
     }
 }
